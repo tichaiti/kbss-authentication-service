@@ -6,28 +6,29 @@ const router = express.Router();
 router.get('/logout', (req, res) => {
     req.logout();
     req.session = null;
-    res.redirect('/');
+    res.json({
+        isAuthenticated: false,
+    });
 });
 
 
 router.post('/signup', (req, res, next) => {
     passport.authenticate('local-signup', (error, user) => {
-        const statusCode = typeof err === 'string' ? 400 : 500;
-        const errorMessage = typeof err === 'string' ? error : error.message || 'Internal server error';
         if (error) {
-            return res.status(statusCode).json({
-                error: errorMessage,
+            return res.status(error.statusCode).json({
+                message: error.message || 'Internal server error',
             });
         }
         return req.login(user, (err) => {
             if (err) {
-                return res.status(statusCode).json({
-                    error: errorMessage,
+                return res.status(err.statusCode).json({
+                    message: err.message,
                 });
             }
 
             return res.json({
                 isAuthenticated: true,
+                user,
             });
         });
     })(req, res, next);
@@ -36,17 +37,20 @@ router.post('/signup', (req, res, next) => {
 router.post('/signin', (req, res, next) => {
     passport.authenticate('local-signin', (error, user) => {
         if (error) {
-            const statusCode = error.statusCode || 500;
-            return res.status(statusCode).json(error);
+            return res.status(error.statusCode).json({
+                message: error.message || 'Internal server error',
+            });
         }
         return req.login(user, (err) => {
             if (err) {
-                const statusCode = error.statusCode || 500;
-                return res.status(statusCode).json(err);
+                return res.status(err.statusCode).json({
+                    message: err.message || 'Internal server error',
+                });
             }
 
             return res.json({
                 isAuthenticated: true,
+                user,
             });
         });
     })(req, res, next);

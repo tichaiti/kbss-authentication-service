@@ -1,5 +1,6 @@
-const User = require('../models/user');
 const express = require('express');
+const User = require('../models/user');
+
 const router = express.Router();
 
 function checkAuthentication(req, res, next) {
@@ -8,24 +9,25 @@ function checkAuthentication(req, res, next) {
         return next();
     }
 
-    res.status(401).json({
+    return res.status(401).json({
         message: 'Not authorized',
-        statusCode: 401
+        statusCode: 401,
     });
 }
 
 router.get('/user', checkAuthentication, (req, res) => {
-    User.findOne({ id: req.user.id }, (error, data) => {
+    User.findOne({ _id: req.user._id }, (error, user) => {
         if (error) {
             return res.status(500).json({
-                message: 'Internal Error',
-                statusCode: 500
+                message: error.message || 'Internal Error',
+                statusCode: 500,
             });
         }
 
-        const user = data[0];
-        delete user.password;
-        return res.status(200).json(user);
+        return res.status(200).json({
+            statusCode: 200,
+            user,
+        });
     });
 });
 

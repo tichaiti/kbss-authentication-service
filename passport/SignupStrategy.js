@@ -13,10 +13,10 @@ const options = {
 const SignupStrategy = new Strategy(options, (req, email, password, done) => {
     User.findOne({ email }).lean().exec((err, user) => {
         if (err) {
-            return done(err, null);
+            return done({ statusCode: 500, ...err }, null);
         }
         if (!isEmpty(user)) {
-            return done('User already exist', null);
+            return done({ statusCode: 400, message: 'User already exist' }, null);
         }
 
         const encryptedPassword = bcrypt.hashSync(password, salt);
@@ -28,9 +28,12 @@ const SignupStrategy = new Strategy(options, (req, email, password, done) => {
 
         return newUser.save((error, inserted) => {
             if (error) {
-                return done(error, null);
+                const statusCode = error.name === 'ValidationError' ? 400 : 500;
+                return done({ statusCode, ...error }, null);
             }
-            return done(null, inserted);
+            const userData = inserted.toObject();
+            delete userData.password;
+            return done(null, userData);
         });
     });
 });

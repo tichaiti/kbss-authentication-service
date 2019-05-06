@@ -17,6 +17,7 @@ const UserSchema = new Schema({
     password: {
         type: String,
         minlength: [8, 'Password too short'],
+        select: false,
     },
     username: String,
     profileImage: String,

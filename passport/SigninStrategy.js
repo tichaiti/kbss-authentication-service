@@ -10,16 +10,16 @@ const options = {
 const SigninStrategy = new Strategy(options, (email, password, done) => {
     User.findOne({ email }).lean().exec((err, user) => {
         if (err) {
-            return done(err, null);
+            return done({ statusCode: 500, ...err }, null);
         }
         if (isEmpty(user)) {
-            return done('No user found', null);
+            return done({ statusCode: 400, message: 'No user found' }, null);
         }
 
         const isPasswordValid = bcrypt.compareSync(password, user.password); // true
 
         if (!isPasswordValid) {
-            return done('Email or Password invalid', null);
+            return done({ statusCode: 400, message: 'Email or Password invalid' }, null);
         }
 
         return done(null, user);

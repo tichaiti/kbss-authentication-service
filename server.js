@@ -17,9 +17,12 @@ app.use(express.urlencoded({
 }));
 app.use(express.json());
 app.use(cookieSession({
-    maxAge: 24 * 60 * 60 * 1000, // one day in miliseconds
+    maxAge: process.env.MAX_AGE || 24 * 60 * 60 * 1000, // one day in miliseconds
     name: 'session',
-    keys: ['key1', 'key2'],
+    keys: [
+        process.env.KEY_ONE || 'key1',
+        process.env.KEY_TWO || 'key2',
+    ],
 }));
 app.use(passport.initialize());
 app.use(passport.session());
