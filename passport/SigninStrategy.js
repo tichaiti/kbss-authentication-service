@@ -8,21 +8,25 @@ const options = {
 };
 
 const SigninStrategy = new Strategy(options, (email, password, done) => {
-    User.findOne({ email }).lean().exec((err, user) => {
-        if (err) {
-            return done({ statusCode: 500, ...err }, null);
-        }
-        if (isEmpty(user)) {
-            return done({ statusCode: 400, message: 'No user found' }, null);
-        }
+    User.findOne({ email })
+        .select('+password')
+        .lean()
+        .exec((err, user) => {
+            if (err) {
+                return done({ statusCode: 500, ...err }, null);
+            }
+            if (isEmpty(user)) {
+                return done({ statusCode: 400, message: 'No user found' }, null);
+            }
 
-        const isPasswordValid = bcrypt.compareSync(password, user.password); // true
+            const isPasswordValid = bcrypt.compareSync(password, user.password); // true
 
-        if (!isPasswordValid) {
-            return done({ statusCode: 400, message: 'Email or Password invalid' }, null);
-        }
-
-        return done(null, user);
+            if (!isPasswordValid) {
+                return done({ statusCode: 400, message: 'Email or Password invalid' }, null);
+            }
+            const userData = user;
+            delete userData.password; // delete user password so it doesn't make it to the client
+            return done(null, userData);
     });
 });
 
